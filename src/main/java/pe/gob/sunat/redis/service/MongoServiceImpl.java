@@ -1,5 +1,9 @@
 package pe.gob.sunat.redis.service;
 
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -16,6 +20,7 @@ import pe.gob.sunat.redis.bean.RespuestaUsuariosBean;
 import pe.gob.sunat.redis.bean.UsuariosBean;
 import pe.gob.sunat.redis.entities.Usuario;
 import pe.gob.sunat.redis.repository.UserRepository;
+import pe.gob.sunat.redis.util.ExcelUtil;
 
 @Service
 public class MongoServiceImpl implements MongoService {
@@ -112,6 +117,37 @@ public class MongoServiceImpl implements MongoService {
             throw new RuntimeException("Error converting object to JSON string", e);
         }
     }
+
+	@Override
+	public void cargaMasiva() {
+		try {
+			InputStream inputStream = new FileInputStream("D:\\CURSOS\\REDIS_BASICO\\redis.xlsx");
+			List<Usuario> lst = ExcelUtil.obtenerDatosExcel(inputStream);
+			
+			/*Primero guardamos en Mongo*/
+			userRepository.saveAll(lst);
+			
+			/*Actualizamos la lista de usuarios*/		
+			for (Usuario bean : lst) {
+				DetalleUsuarioBean detalle = new DetalleUsuarioBean();
+				detalle.setUsuario(bean.getUsuario());
+				detalle.setNombre(bean.getNombre());
+				detalle.setApellido(bean.getApellido());
+				detalle.setDireccion(bean.getDireccion());
+				redisTemplate.opsForList().rightPush("usuarios", bean.getUsuario());
+				String jsonString = convertObjectToJsonString(detalle);
+				redisTemplate.opsForValue().set("usuario."+bean.getUsuario(), jsonString);
+			}
+			
+		} catch (FileNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+	}
 
 
 

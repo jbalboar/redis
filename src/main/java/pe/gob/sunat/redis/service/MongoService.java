@@ -12,4 +12,6 @@ public interface MongoService {
 	public void guardarUsuario(DetalleUsuarioBean bean);
 
 	public void eliminarUsuario(String user);
+
+	public void cargaMasiva();
 }

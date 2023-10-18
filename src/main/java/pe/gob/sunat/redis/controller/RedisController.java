@@ -61,5 +61,10 @@ public class RedisController {
 		iMongoService.guardarUsuario(bean);
 	}
 	
+	@GetMapping("/cargaMasiva")
+	public void cargaMasiva() {
+		iMongoService.cargaMasiva();
+
+	}
 	
 }
